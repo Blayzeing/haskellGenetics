@@ -1,0 +1,46 @@
+ChooseMove
+	Returns the next position of the board. It does this by choosing from a collection of moves from findMoves, then running toFoundations
+	-If the below works, simply take the head of findMoves. If findMoves
+is empty (ie, there are no king moves, no moves from the head of a column to
+another head and no more space to place cards on top of cards to uncover),
+then the game is over.
+	
+findMoves
+	Should return a list of possible moves (not to foundations), and their probable scores
+	
+	-King moves to column ranked highest and performed first
+		If there are king moves, just return these.
+	-Then all predecessors are generated for column heads
+		Every predecessor that is also in the successor (of foundations) list gets some kind of base score addition. (negative in keeping with the next step?)
+	-Next, each column and the reserves are checked for predecessors.
+		For each predecessor, score it based on the number of moves it will take to get it to a column head (depth from head is quite a good heuristic?)
+	-Now, every predecessor is scored. Some of these will be faaar back into the columns.
+         The ones on the top of a column will have *second* heighest score, those in reserves 
+         rank 1st, those in columns rank 2nd-nth where n is the number of cards they are behind the column head (heuristic).
+	-With each predecessor scored, go through the list of predecessors and generate moves
+         (ie, any from heads of cols or from reserves will be one move of that card onto the 
+         appropriate head; any in far back in cols will be one move of the card from the head
+         of that column into the reserves. If the reserves are full, this move will not be generated [ END STATE ])
+		Perhaps this is done in a map, so you go from a list of predeccessor locations (perhaps more advanced datatype?) and score pairs to a list of generated moves and score pairs.
+	-Finally, order the generated moves by their given scores, and return the list of generated moves.
+
+
+Notes:
+- The heuristic for ranking hidden cards is not very advanced. Perhaps it'll
+  do, but perhaps one which takes into account the cards that are uncovered
+  getting to itwould be better. ALTHOUGH, that is wrong, as heigher cards will
+  also add to the list of moves. Admittedly, the move will be there twice, but
+  for two different reasons, but, one will be higher on the list (the closer
+one).
+- Make sure that the game can be won if the board is a dealt pack.
+  toFoundations might need to be played over and over on scenarios where there
+  are no legal 'moves'. If this is the case, perhaps toFoundations should be
+  played earlier on, perhaps in the otherwise in findMoves or findMoves's
+  `where` statement.
+- It's generally considered bad to cover cards. Perhaps if it performs badly,
+  see if there's a way of not covering needed cards.
+
+TODO:
+- Change eODeal back to taking an int, not a deck
+- Can 'rank' be removed/optimised? (See the line under 'rankeCards = ' on line
+  130.

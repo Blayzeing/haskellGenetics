@@ -1,0 +1,10 @@
+findMoves
+	- A findKingMoves()
+	- A convertToMoves() that takes a list of card positions (and maybe
+	  goal positions) and converts them to moves (basically, for every
+	  card, if it's a head or a reserve, move it to the correct goal col;
+	  if not, then move the head of it's col to reserves. If the reserve
+	  move cannot be made, then do not make the move. Note that this will
+	  return the board in the same state. This will allow for a filter to
+	  be applied to the list of moves to remove any that result in a state
+	  that is the same as the current state.)
