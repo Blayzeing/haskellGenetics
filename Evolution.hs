@@ -38,12 +38,18 @@ mutateStateTwoGenes state max min seed = map fst $ map (mutate second mutation2)
 mutateStateNgenes :: [Double] -> Double -> Double -> Int -> Int -> [Double]
 mutateStateNgenes state _ _ _ 0 = state
 mutateStateNgenes [] _ _ _ _ = []
-mutateStateNgenes state max min seed count = (mutateStateNgenes ) ++ mutatedGene:(mutateStateNgenes )
+mutateStateNgenes state max min seed count = firstSeg ++ [mutatedGene] ++ secondSeg--(mutateStateNgenes ) ++ mutatedGene:(mutateStateNgenes )
     where
         randomNums = take (length state) (randoms (mkStdGen seed) :: [Int])
-        zipped = zip state randomNums
-        highest = 
-        mutatedGene = 
+	nextSeed = head randomNums
+        highest = maximum randomNums
+        pos = getMaybe $ elemIndex highest randomNums
+        zipped = map (\ (s,n) -> if n == highest then (s,1) else (s,0)) (zip state randomNums)
+        mutation = head (randomRs (min,max) (mkStdGen seed) :: [Double])
+        mutatedGene = (foldr (\ (s,n) r -> if n == 1 then r + s else r) 0 zipped) + mutation
+        firstSeg = map fst $ take pos zipped
+        secondSeg = map fst $ drop (pos+1) zipped
+        getMaybe (Just a) = a
 
 
 ---- Evolution Section: All functions here run the actual evolution, handling selection and precedence
