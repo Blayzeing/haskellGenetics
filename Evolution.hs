@@ -37,9 +37,13 @@ mutateStateTwoGenes state max min seed = map fst $ map (mutate second mutation2)
 
 mutateStateNgenes :: [Double] -> Double -> Double -> Int -> Int -> [Double]
 mutateStateNgenes state _ _ _ 0 = state
+mutateStateNgenes [] _ _ _ _ = []
 mutateStateNgenes state max min seed count = (mutateStateNgenes ) ++ mutatedGene:(mutateStateNgenes )
     where
-        mutatedGene
+        randomNums = take (length state) (randoms (mkStdGen seed) :: [Int])
+        zipped = zip state randomNums
+        highest = 
+        mutatedGene = 
 
 
 ---- Evolution Section: All functions here run the actual evolution, handling selection and precedence
