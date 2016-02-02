@@ -35,6 +35,12 @@ mutateStateTwoGenes state max min seed = map fst $ map (mutate second mutation2)
         mutation = head (drop (length state) doubleRandoms)
         mutation2 = head (drop ((length state)+1) doubleRandoms)
 
+mutateStateNgenes :: [Double] -> Double -> Double -> Int -> Int -> [Double]
+mutateStateNgenes state _ _ _ 0 = state
+mutateStateNgenes state max min seed count = (mutateStateNgenes ) ++ mutatedGene:(mutateStateNgenes )
+    where
+        mutatedGene
+
 
 ---- Evolution Section: All functions here run the actual evolution, handling selection and precedence
 -- Recursive function to spawn 100 variations on a gene state, run them through the given function and then choose the best state and run it again, until genCount == maxGens
