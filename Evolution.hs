@@ -8,37 +8,10 @@ generateStartState :: Int -> Int -> Double -> Double -> [Double]
 generateStartState seed size max min = take size randomNums
     where randomNums = randomRs (min,max) (mkStdGen seed) :: [Double]
 
-
----- Mutators Section: All functions here take a state, and mutate it in some way. If you write any more (or improve on my hastely-written code), please send me your additions
--- Takes seed, a state, and the maximum and minimum mutation amount, then returns the state with 1 randomly mutated gene
-mutateStateOneGene :: [Double] -> Double -> Double -> Int -> [Double]
-mutateStateOneGene state max min seed = map (\ (stateBit, rNum) -> if rNum == highest then stateBit + mutation else stateBit) zipped
-    where
-        randomNums = randoms (mkStdGen seed) :: [Int]
-        sequence = take (length state) randomNums
-        zipped = zip state (sequence)
-        highest = maximum sequence
-        doubleRandoms = randomRs (min,max) (mkStdGen seed) :: [Double]
-        mutation = head (drop (length state) doubleRandoms)
-
--- Same as above, just with 2 randomly mutated genes
-mutateStateTwoGenes :: [Double] -> Double -> Double -> Int -> [Double]
-mutateStateTwoGenes state max min seed = map fst $ map (mutate second mutation2) $ map (mutate highest mutation) zipped
-    where
-        randomNums = randoms (mkStdGen seed) :: [Int]
-        sequence = take (length state) randomNums
-        zipped = zip state (sequence)
-        highest = maximum sequence
-        second = maximum (delete highest sequence)
-        mutate bit mut (stateBit, rNum) = if rNum == bit then (stateBit + mut, rNum) else (stateBit, rNum)
-        doubleRandoms = randomRs (min,max) (mkStdGen seed) :: [Double]
-        mutation = head (drop (length state) doubleRandoms)
-        mutation2 = head (drop ((length state)+1) doubleRandoms)
-
-mutateStateNgenes :: [Double] -> Double -> Double -> Int -> Int -> [Double]
-mutateStateNgenes state _ _ _ 0 = state
-mutateStateNgenes [] _ _ _ _ = []
-mutateStateNgenes state max min seed count = firstSegM ++ [mutatedGene] ++ secondSegM
+mutateStateNgenes :: Int -> [Double] -> Double -> Double -> Int -> [Double]
+mutateStateNgenes 0 state _ _ _ = state
+mutateStateNgenes _ [] _ _ _ = []
+mutateStateNgenes count state max min seed = firstSegM ++ [mutatedGene] ++ secondSegM
     where
         randomNums = take (length state) (randoms (mkStdGen seed) :: [Int])
 	nextSeed = head randomNums
@@ -49,7 +22,7 @@ mutateStateNgenes state max min seed count = firstSegM ++ [mutatedGene] ++ secon
         mutatedGene = (foldr (\ (s,n) r -> if n == 1 then r + s else r) 0 zipped) + mutation
         firstSeg = map fst $ take pos zipped
         secondSeg = map fst $ drop (pos+1) zipped
-        nextIteration = mutateStateNgenes (firstSeg++secondSeg) max min nextSeed (count-1)
+        nextIteration = mutateStateNgenes (count-1) (firstSeg++secondSeg) max min nextSeed
         firstSegM = take (length firstSeg) nextIteration
         secondSegM = drop (length firstSeg) nextIteration
         getMaybe (Just a) = a
