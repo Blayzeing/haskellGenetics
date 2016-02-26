@@ -8,28 +8,16 @@ generateStartState :: Int -> Int -> Double -> Double -> [Double]
 generateStartState seed size max min = take size randomNums
     where randomNums = randomRs (min,max) (mkStdGen seed) :: [Double]
 
-mutateStateNgenes :: Int -> [Double] -> Double -> Double -> Int -> [Double]
-mutateStateNgenes 0 state _ _ _ = state
-mutateStateNgenes _ [] _ _ _ = []
-mutateStateNgenes count state max min seed = firstSegM ++ [mutatedGene] ++ secondSegM
+mutateStateNgenes :: [Double] -> Double -> Double -> Int -> Int -> [Double]
+mutateStateNgenes state _ _ _ 0 = state
+mutateStateNgenes [] _ _ _ _ = []
+mutateStateNgenes state max min seed count = (mutateStateNgenes ) ++ mutatedGene:(mutateStateNgenes )
     where
         randomNums = take (length state) (randoms (mkStdGen seed) :: [Int])
-	nextSeed = head randomNums
-        highest = maximum randomNums
-        pos = getMaybe $ elemIndex highest randomNums
-        zipped = map (\ (s,n) -> if n == highest then (s,1) else (s,0)) (zip state randomNums)
-        mutation = head (randomRs (min,max) (mkStdGen seed) :: [Double])
-        mutatedGene = (foldr (\ (s,n) r -> if n == 1 then r + s else r) 0 zipped) + mutation
-        firstSeg = map fst $ take pos zipped
-        secondSeg = map fst $ drop (pos+1) zipped
-        nextIteration = mutateStateNgenes (count-1) (firstSeg++secondSeg) max min nextSeed
-        firstSegM = take (length firstSeg) nextIteration
-        secondSegM = drop (length firstSeg) nextIteration
-        getMaybe (Just a) = a
+        zipped = zip state randomNums
+        highest = 
+        mutatedGene = 
 
--- EXAMPLE USAGE OF EVOLVE FUNCTION:
--- evolve [seed] [initial state] [generation size] [max. mutation] [min. mutation] [ordering func] [scoreing func] [mutation func] 0 [total # of generations]
--- evolve   42      [0,0,0]             10              10              (-10)          
 
 ---- Evolution Section: All functions here run the actual evolution, handling selection and precedence
 -- Recursive function to spawn 100 variations on a gene state, run them through the given function and then choose the best state and run it again, until genCount == maxGens
@@ -37,7 +25,7 @@ mutateStateNgenes count state max min seed = firstSegM ++ [mutatedGene] ++ secon
 evolve :: Int -> [Double] -> Int -> Double -> Double -> (Double -> Double -> Ordering) -> ([Double] -> Double) -> ([Double] -> Double -> Double -> Int -> [Double]) -> Int -> Int -> [Double]
 evolve seed state genSize max min ordering function mutationFunction genCount maxGens
     | genCount == maxGens = state
-    | otherwise = traceShow (state) $ evolve nextSeed (fst best) genSize max min ordering function mutationFunction (genCount+1) maxGens
+    | otherwise = evolve nextSeed (fst best) genSize max min ordering function mutationFunction (genCount+1) maxGens
     where
         seeds = randoms (mkStdGen seed) :: [Int]
         mutatedStates = state:[mutationFunction state max min x | x <- take genSize seeds]
