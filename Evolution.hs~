@@ -28,26 +28,13 @@ mutateStateNgenes count max min state seed = firstSegM ++ [mutatedGene] ++ secon
         secondSegM = drop (length firstSeg) nextIteration
         getMaybe (Just a) = a
 
----- SELECTION FUNCTIONS BELOW HERE
---takeBestSelection :: [([Double], Int)] -> [[Double]]
-
 -- EXAMPLE USAGE OF EVOLVE FUNCTION:
--- evolve [seed] [initial state] [generation size] [max. mutation] [min. mutation] [ordering func] [scoring func] [   mutation func   ] 0 [total # of generations]
--- evolve   42      [0,0,0]             10              10              (-10)      (flip.compare)     chessSim    (mutateStateNgenes 2) 0          100
+-- evolve [seed] [initial state] [generation size] [ordering func] [scoring func] [       mutation func      ] 0 [total # of generations]
+-- evolve   42      [0,0,0]             10         (flip.compare)     chessSim    (mutateStateNgenes 2 1 (-1)) 0          100
 
 ---- Evolution Section: All functions here run the actual evolution, handling selection and precedence
 -- Recursive function to spawn 100 variations on a gene state, run them through the given function and then choose the best state and run it again, until genCount == maxGens
 -- ordering can be 'compare' for lowest first, or '(flip compare)' for highest first
---evolve :: Int -> [Double] -> Int -> Double -> Double -> (Double -> Double -> Ordering) -> ([Double] -> Double) -> ([Double] -> Double -> Double -> Int -> [Double]) -> Int -> Int -> [Double]
---evolve seed state genSize max min ordering function mutationFunction genCount maxGens
---    | genCount == maxGens = traceShow (function state) $ state
---    | otherwise = traceShow (state) $ evolve nextSeed (fst best) genSize max min ordering function mutationFunction (genCount+1) maxGens
---    where
---        seeds = randoms (mkStdGen seed) :: [Int]
---        mutatedStates = state:[mutationFunction state max min x | x <- take genSize seeds]
---        rankedMutations = map (\ state -> (state, function state)) mutatedStates
---        orderedMutations@(best:t) = sortBy (\ (_,n1) (_,n2) -> ordering n1 n2) rankedMutations
---        nextSeed = head $ drop genSize seeds
 evolve :: Int -> [Double] -> Int -> (Double -> Double -> Ordering) -> ([Double] -> Double) -> ([Double] -> Int -> [Double]) -> Int -> Int -> [Double]
 evolve seed state genSize ordering function mutationFunction genCount maxGens
     | genCount == maxGens = traceShow (function state) $ state
@@ -59,14 +46,18 @@ evolve seed state genSize ordering function mutationFunction genCount maxGens
         orderedMutations@(best:t) = sortBy (\ (_,n1) (_,n2) -> ordering n1 n2) rankedMutations
         nextSeed = head $ drop genSize seeds
 
+-- EXAMPLE USAGE OF EVOLVESEEDED FUNCTION:
+-- evolve [seed] [initial state] [generation size] [ordering func] [scoring func] [       mutation func      ] 0 [total # of generations]
+-- evolve   42      [0,0,0]             10         (flip.compare)   ArandomChess  (mutateStateNgenes 2 1 (-1)) 0          100
+
 -- Same as above, but instead of function just taking a state, it now takes a seed and a state (in that order)
---evolveSeeded :: Int -> [Double] -> Int -> Double -> Double -> (Double -> Double -> Ordering) -> (Int -> [Double] -> Double) -> ([Double] -> Int -> [Double]) -> Int -> Int -> [Double]
---evolveSeeded seed state genSize max min ordering function mutationFunction genCount maxGens
---    | genCount == maxGens = state
---    | otherwise = traceShow (state) $ evolveSeeded nextSeed (fst best) genSize max min ordering function mutationFunction (genCount+1) maxGens
---    where
---        seeds = randoms (mkStdGen seed) :: [Int]
---        mutatedStates = (seed, state):[(x, mutationFunction state x) | x <- take genSize seeds]
---        rankedMutations = map (\ (seed, state) -> (state, function seed state)) mutatedStates
---        orderedMutations@(best:t) = sortBy (\ (_,n1) (_,n2) -> ordering n1 n2) rankedMutations
---        nextSeed = head $ drop genSize seeds
+evolveSeeded :: Int -> [Double] -> Int -> (Double -> Double -> Ordering) -> (Int -> [Double] -> Double) -> ([Double] -> Int -> [Double]) -> Int -> Int -> [Double]
+evolveSeeded seed state genSize ordering function mutationFunction genCount maxGens
+    | genCount == maxGens = state
+    | otherwise = traceShow (state) $ evolveSeeded nextSeed (fst best) genSize ordering function mutationFunction (genCount+1) maxGens
+    where
+        seeds = randoms (mkStdGen seed) :: [Int]
+        mutatedStates = (seed, state):[(x, mutationFunction state x) | x <- take genSize seeds]
+        rankedMutations = map (\ (seed, state) -> (state, function seed state)) mutatedStates
+        orderedMutations@(best:t) = sortBy (\ (_,n1) (_,n2) -> ordering n1 n2) rankedMutations
+        nextSeed = head $ drop genSize seeds
